@@ -1,0 +1,7 @@
+
+curl -d "appID=8856da69&apiKey=63f69bfe2ea5e6e8b12511000f01d73c&stopNo=7659" https://api.octranspo1.com/v1.2/GetRouteSummaryForStop
+
+
+curl -d "appID=8856da69&apiKey=63f69bfe2ea5e6e8b12511000f01d73c&routeNo=61&stopNo=6908" https://api.octranspo1.com/v1.2/GetNextTripsForStop
+
+https://api.octranspo1.com/v1.2/GetRouteSummaryForStop?appID=8856da69&apiKey=63f69bfe2ea5e6e8b12511000f01d73c&stopNo=6908
