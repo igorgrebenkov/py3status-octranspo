@@ -1,4 +1,3 @@
-
 import json, requests
 
 def getJSON(routeNo, stopNo):
@@ -63,8 +62,7 @@ class Py3status:
     stopNo = '95'
     direction = 'east'
 
-    def octranspo(self):
-
+    def OCTranspo(self):
         data = getJSON(self.routeNo, self.stopNo)
         result = parseData(data, self.direction)
         full_text = self.py3.safe_format(self.format, 
