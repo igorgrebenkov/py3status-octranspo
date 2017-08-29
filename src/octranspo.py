@@ -14,9 +14,11 @@ def getJSON(appID, apiKey, routeNo, stopNo):
                 'stopNo': stopNo,
                 'format': 'JSON' 
               }
-
-    r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload)
-    return r.json()
+    try:
+        r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload)
+        return r.json()
+    except Exception as e:
+        return 'CONNECTION_ERROR'
 
 # Parses relevant data from the JSON response into a dict
 def parseData(data, direction):
@@ -89,6 +91,19 @@ class Py3status:
     
     def OCTranspo(self):
         data = getJSON(self.appID, self.apiKey, self.routeNo, self.stopNo)
+        
+        # Display routeNo in red if no connection established
+        if data == 'CONNECTION_ERROR':
+            ft_error = self.py3.safe_format('  {routeNo}',
+                    {
+                      'routeNo': self.routeNo,
+                      'stopNo': self.stopNo
+                    })
+            return {
+                     'full_text': ft_error,
+                     'color': self.py3.COLOR_LOW
+                   }
+
         result = parseData(data, self.direction)
 
         # Assign color based on trip time relative to low_threshold 
