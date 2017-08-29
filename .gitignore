@@ -1,2 +1,4 @@
 *.swp
 GTFS/
+routes.txt
+api.txt
