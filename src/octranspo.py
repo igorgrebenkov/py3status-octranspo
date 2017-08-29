@@ -61,10 +61,12 @@ class Py3status:
     routeNo = '3000' 
     stopNo = '95'
     direction = 'east'
+    low_thresh = 5
 
     def OCTranspo(self):
         data = getJSON(self.routeNo, self.stopNo)
         result = parseData(data, self.direction)
+        
         full_text = self.py3.safe_format(self.format, 
                 { 'routeNo': result['routeNo'], 
                   'direction': result['routeDir'][0], 
@@ -72,9 +74,15 @@ class Py3status:
                   'trip2': result['trip2'], 
                   'trip3': result['trip3']
                 })
+        
+        if int(result['trip1']) <= self.low_thresh:
+            color = self.py3.COLOR_LOW
+        else:
+            color = self.py3.COLOR_HIGH
 
         return {
                 'full_text': full_text,
+                'color': color, 
                 'cached_until': self.py3.time_in(50) }
 
 if __name__ == "__main__":
