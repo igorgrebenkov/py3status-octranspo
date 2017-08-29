@@ -41,11 +41,16 @@ def parseData(data, direction):
         trip1 = str(
                 data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'][0]['AdjustedScheduleTime'])
 
+
         trip2 = str(
                 data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'][1]['AdjustedScheduleTime'])
 
         trip3 = str(
                 data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'][2]['AdjustedScheduleTime'])
+    
+        trip1_age = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'][0]['AdjustmentAge']
+        trip2_age = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'][1]['AdjustmentAge']
+        trip3_age = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'][2]['AdjustmentAge']
     else:
         routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteLabel']
 
@@ -63,6 +68,10 @@ def parseData(data, direction):
         trip3 = str(
                 data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip'][2]['AdjustedScheduleTime'])
 
+        trip1_age = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip'][0]['AdjustmentAge']
+        trip2_age = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip'][1]['AdjustmentAge']
+        trip3_age = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip'][2]['AdjustmentAge']
+
     return { 'stopNo': stopNo,
              'stopLabel': stopLabel,
              'routeLabel': routeLabel,
@@ -70,7 +79,10 @@ def parseData(data, direction):
              'routeDir': routeDir,
              'trip1': trip1,
              'trip2': trip2,
-             'trip3': trip3 
+             'trip3': trip3,
+             'trip1_age': trip1_age,
+             'trip2_age': trip2_age,
+             'trip3_age': trip3_age
            }
 
 class Py3status:
@@ -121,6 +133,15 @@ class Py3status:
             color3 = self.py3.COLOR_LOW
         else:
             color3 = self.py3.COLOR_HIGH
+
+        if result['trip1_age'] == "-1":
+            result['trip1'] += " S"
+
+        if result['trip2_age'] == "-1":
+            result['trip2'] += " S"
+
+        if result['trip3_age'] == "-1":
+            result['trip3'] += " S"
         
         # For button toggling
         if self.button_down:
