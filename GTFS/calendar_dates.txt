@@ -1,4 +1,0 @@
-﻿service_id,date,exception_type
-SEPT17-SEPSU17-Sunday-01,20170904,1
-SEPT17-SEPSU17-Sunday-01,20171009,1
-SEPT17-SEPDA17-Weekday-21,20171009,2
