@@ -37,6 +37,8 @@ def parseData(data, direction):
                 data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteNo'])
 
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Direction']
+        
+        trip_cnt = len(data['GetNexttripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'])
 
         trip1 = str(
                 data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'][0]['AdjustedScheduleTime'])
@@ -117,31 +119,31 @@ class Py3status:
                    }
 
         result = parseData(data, self.direction)
+        
+        if result['trip1_age'] == "-1":
+            color1 = self.py3.COLOR_SCHED
+        else:
+            color1 = self.py3.COLOR_GPS
+
+        if result['trip2_age'] == "-1":
+            color2 = self.py3.COLOR_SCHED
+        else:
+            color2 = self.py3.COLOR_GPS
+
+        if result['trip3_age'] == "-1":
+            color3 = self.py3.COLOR_SCHED
+        else:
+            color3 = self.py3.COLOR_GPS
 
         # Assign color based on trip time relative to low_threshold 
         if int(result['trip1']) <= self.low_thresh:
             color1 = self.py3.COLOR_LOW
-        else:
-            color1 = self.py3.COLOR_HIGH
         
         if int(result['trip2']) <= self.low_thresh:
             color2 = self.py3.COLOR_LOW
-        else:
-            color2 = self.py3.COLOR_HIGH
         
         if int(result['trip3']) <= self.low_thresh:
             color3 = self.py3.COLOR_LOW
-        else:
-            color3 = self.py3.COLOR_HIGH
-
-        if result['trip1_age'] == "-1":
-            result['trip1'] += " S"
-
-        if result['trip2_age'] == "-1":
-            result['trip2'] += " S"
-
-        if result['trip3_age'] == "-1":
-            result['trip3'] += " S"
         
         # For button toggling
         if self.button_down:
@@ -218,3 +220,10 @@ class Py3status:
 
     def on_click(self, event):
         self.button = event['button']
+
+if __name__ == "__main__":
+    """
+    Run module in test mode.
+    """
+    from py3status.module_test import module_test
+    module_test(Py3status)
