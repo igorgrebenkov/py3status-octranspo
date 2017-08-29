@@ -1,6 +1,8 @@
 import json, requests
 
 class Py3status:
+    format = '{routeNo} ({trip1} / {trip2} / {trip3})'
+    
     def __init__(self):
         
         payload = { 'appID': '8856da69',
@@ -21,7 +23,8 @@ class Py3status:
         self.full_text = self.routeNo + " (" + self.trip1 + " / " + self.trip2 + " / " + self.trip3 + ")"
     
     def octranspo(self):
+        full_text = self.py3.safe_format(self.format, {'routeNo': self.routeNo, 'trip1': self.trip1, 'trip2': self.trip2, 'trip3': self.trip3})
         return {
-            'full_text': self.full_text,
-            'cached_until': self.py3.CACHE_FOREVER
+                'full_text': full_text,
+                'cached_until': self.py3.CACHE_FOREVER
         }
