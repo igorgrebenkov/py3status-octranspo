@@ -116,7 +116,7 @@ class Py3status:
                 else:
                     self.colors[i] = self.py3.COLOR_GPS
 
-    # Checks if the button is pressed and toggles the {route} format 
+    # Initialiazes the {route} string 
     def _initRouteString(self):
         # Enables button toggling
         if self.button_down:
@@ -125,26 +125,58 @@ class Py3status:
 
         # Button action for showing route destination 
         if self.button:
-            self.ft_route_dir = self.py3.safe_format(
+            self.ft_route = self.py3.safe_format(
                     self.format_route_click,
                     {
-                        'icon': self.t_icon,
-                        'separator': self.t_separator,
-                        'routeNo': self.result['routeNo'],
-                        'routeLabel': self.result['routeLabel'],
-                        'stopNo' : self.result['stopNo'],
-                        'stopLabel': self.result['stopLabel']
+                      'icon': self.t_icon,
+                      'separator': self.t_separator,
+                      'routeNo': self.result['routeNo'],
+                      'routeLabel': self.result['routeLabel'],
+                      'stopNo' : self.result['stopNo'],
+                      'stopLabel': self.result['stopLabel']
                     })
             self.button_down = True
         else:
-            self.ft_route_dir = self.py3.safe_format(
+            self.ft_route = self.py3.safe_format(
                     self.format_route,
                     { 
                       'icon': self.t_icon,
                       'routeNo': self.result['routeNo'], 
                       'direction': self.result['routeDir'][0], 
                     })
+
+    # Initializes the {trips} string
+    def _initTripsString(self):
+        ft_trips = [' '] * 3
+        for i in range(0, len(self.result['tripTimes'])):
+            ft_trips[i] = self.py3.safe_format(
+                    self.format_trip,
+                    {
+                      'trip': self.result['tripTimes'][i]
+                    })
         
+        self.ft_trips_dict = [{
+                                'full_text': ft_trips[0],
+                                'color': self.colors[0]
+                              },
+                              {
+                                'full_text': self.t_trip_separator,
+                                'color': self.py3.COLOR_HIGH
+                              },
+                              {
+                                'full_text': ft_trips[1],
+                                'color': self.colors[1]
+                              },
+                              {    
+                                'full_text': self.t_trip_separator,
+                                'color': self.py3.COLOR_HIGH
+                              },
+                              {
+                                'full_text': ft_trips[2],
+                                'color': self.colors[1]
+                              }]
+
+    # Main function run by py3status  
     def OCTranspo(self):
         data = getJSON(self.appID, self.apiKey, self.routeNo, self.stopNo)
         
@@ -166,40 +198,12 @@ class Py3status:
 
         self._assignColors()
         self._initRouteString()
+        self._initTripsString()
 
-        # Init and populate display strings for trip times
-        ft_trips = [' '] * 3
-        for i in range(0, len(self.result['tripTimes'])):
-            ft_trips[i] = self.py3.safe_format(
-                    self.format_trip,
-                    {
-                      'trip': self.result['tripTimes'][i]
-                    })
-        
-        ft_trips_display = [{
-                             'full_text': ft_trips[0],
-                             'color': self.colors[0]
-                           },
-                           {
-                             'full_text': self.t_trip_separator,
-                             'color': self.py3.COLOR_HIGH
-                           },
-                           {
-                            'full_text': ft_trips[1],
-                            'color': self.colors[1]
-                          },
-                          {
-                            'full_text': self.t_trip_separator,
-                            'color': self.py3.COLOR_HIGH
-                          },
-                          {
-                            'full_text': ft_trips[2],
-                            'color': self.colors[1]
-                          }]
 
         composites = {
-            'route': self.py3.composite_create(self.ft_route_dir),
-            'trips': self.py3.composite_create(ft_trips_display)
+            'route': self.py3.composite_create(self.ft_route),
+            'trips': self.py3.composite_create(self.ft_trips_dict)
         } 
 
         return {
