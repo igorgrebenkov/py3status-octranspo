@@ -24,27 +24,21 @@ def getJSON(appID, apiKey, routeNo, stopNo):
 def parseJSON(data, direction):
     dirNo = 0 if direction == 'east' else 1
     
-    stopNo = data.get('StopNo')
-    stopLabel = data.get('StopLabel')
+    stopNo = data['GetNextTripsForStopResult']['StopNo']
+    stopLabel = data['GetNextTripsForStopResult']['StopLabel']
     
-    route_direction = data.get('GetNextTripsForStopResult').get('Route').get('RouteDirection')
+    route_direction = data['GetNextTripsForStopResult']['Route']['RouteDirection']
     
     # if 'RouteDirection' is a list, then we have to index the proper direction
-    if type(data['GetNextTripsForStopResult']['Route']['RouteDirection']) is list:
+    if type(route_direction) is list:
         routeLabel = route_direction[dirNo].get('RouteLabel') 
-        
         routeNo = route_direction[dirNo].get('RouteNo')
-        
         routeDir = route_direction[dirNo].get('Direction')
-        
         trips = route_direction[dirNo].get('Trips') 
     else:
         routeLabel = route_direction.get('RouteLabel') 
-        
         routeNo = route_direction.get('RouteNo')
-        
         routeDir = route_direction.get('Direction')
-        
         trips = route_direction.get('Trips') 
         
     tripTimes = ['-'] * 3
@@ -74,8 +68,8 @@ def parseJSON(data, direction):
 
 # Module class
 class Py3status:
-    routeNo = '3000' 
-    stopNo = '95'
+    routeNo = '95' 
+    stopNo = '3000'
     direction = 'east'
     low_thresh = 15
 
@@ -134,10 +128,12 @@ class Py3status:
 
         # Button action for showing route destination 
         if self.button:
-            ft_route_dir = self.py3.safe_format('  {routeNo} {routeLabel} - {stopLabel} (',
+            ft_route_dir = self.py3.safe_format(
+                    '  {routeNo} {routeLabel} - {stopLabel} ({stopNo}) (',
                     {
                         'routeNo': result['routeNo'],
                         'routeLabel': result['routeLabel'],
+                        'stopNo' : result['stopNo'],
                         'stopLabel': result['stopLabel']
                     })
             self.button_down = True
