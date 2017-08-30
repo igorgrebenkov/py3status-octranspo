@@ -96,6 +96,55 @@ class Py3status:
         self.appID = self.login_file.readline().rstrip('\n')
         self.apiKey = self.login_file.readline().rstrip('\n')
 
+    # Assign self.colors based on whether time is GPS or not and based on low_thresh
+    def _assignColors(self):
+        self.colors = [self.py3.COLOR_SCHED] * 3
+
+        for i in range(0, len(self.result['tripAges'])):
+            trip_time = self.result['tripTimes'][i]
+
+            if trip_time == self.UNSCHEDULED:
+                self.colors[i] = self.py3.COLOR_SCHED
+            elif self.result['tripAges'][i] == self.NOGPS:
+                if int(trip_time) <= self.low_thresh:
+                    self.colors[i] = self.py3.COLOR_LOW_SCHED
+                else:
+                    self.colors[i] = self.py3.COLOR_SCHED
+            else:
+                if int(trip_time) <= self.low_thresh:
+                    self.colors[i] = self.py3.COLOR_LOW_GPS
+                else:
+                    self.colors[i] = self.py3.COLOR_GPS
+
+    # Checks if the button is pressed and toggles the {route} format 
+    def _initRouteString(self):
+        # Enables button toggling
+        if self.button_down:
+            self.button = None
+            self.button_down = False
+
+        # Button action for showing route destination 
+        if self.button:
+            self.ft_route_dir = self.py3.safe_format(
+                    self.format_route_click,
+                    {
+                        'icon': self.t_icon,
+                        'separator': self.t_separator,
+                        'routeNo': self.result['routeNo'],
+                        'routeLabel': self.result['routeLabel'],
+                        'stopNo' : self.result['stopNo'],
+                        'stopLabel': self.result['stopLabel']
+                    })
+            self.button_down = True
+        else:
+            self.ft_route_dir = self.py3.safe_format(
+                    self.format_route,
+                    { 
+                      'icon': self.t_icon,
+                      'routeNo': self.result['routeNo'], 
+                      'direction': self.result['routeDir'][0], 
+                    })
+        
     def OCTranspo(self):
         data = getJSON(self.appID, self.apiKey, self.routeNo, self.stopNo)
         
@@ -107,71 +156,29 @@ class Py3status:
                       'icon': self.t_icon,
                       'routeNo': self.routeNo
                     })
+            
             return {
                      'full_text': ft_error,
                      'color': self.py3.COLOR_LOW_GPS
                    }
 
-        result = parseJSON(data, self.direction)
+        self.result = parseJSON(data, self.direction)
 
-        # Assign colors based on whether time is GPS or not and based on low_thresh
-        colors = [self.py3.COLOR_SCHED] * 3
-
-        for i in range(0, len(result['tripAges'])):
-            trip_time = result['tripTimes'][i]
-
-            if trip_time == self.UNSCHEDULED:
-                colors[i] = self.py3.COLOR_SCHED
-            elif result['tripAges'][i] == self.NOGPS:
-                if int(trip_time) <= self.low_thresh:
-                    colors[i] = self.py3.COLOR_LOW_SCHED
-                else:
-                    colors[i] = self.py3.COLOR_SCHED
-            else:
-                if int(trip_time) <= self.low_thresh:
-                    colors[i] = self.py3.COLOR_LOW_GPS
-                else:
-                    colors[i] = self.py3.COLOR_GPS
-        
-        # Enables button toggling
-        if self.button_down:
-            self.button = None
-            self.button_down = False
-
-        # Button action for showing route destination 
-        if self.button:
-            ft_route_dir = self.py3.safe_format(
-                    self.format_route_click,
-                    {
-                        'icon': self.t_icon,
-                        'separator': self.t_separator,
-                        'routeNo': result['routeNo'],
-                        'routeLabel': result['routeLabel'],
-                        'stopNo' : result['stopNo'],
-                        'stopLabel': result['stopLabel']
-                    })
-            self.button_down = True
-        else:
-            ft_route_dir = self.py3.safe_format(
-                    self.format_route,
-                    { 
-                      'icon': self.t_icon,
-                      'routeNo': result['routeNo'], 
-                      'direction': result['routeDir'][0], 
-                    })
+        self._assignColors()
+        self._initRouteString()
 
         # Init and populate display strings for trip times
         ft_trips = [' '] * 3
-        for i in range(0, len(result['tripTimes'])):
+        for i in range(0, len(self.result['tripTimes'])):
             ft_trips[i] = self.py3.safe_format(
                     self.format_trip,
                     {
-                      'trip': result['tripTimes'][i]
+                      'trip': self.result['tripTimes'][i]
                     })
         
         ft_trips_display = [{
                              'full_text': ft_trips[0],
-                             'color': colors[0]
+                             'color': self.colors[0]
                            },
                            {
                              'full_text': self.t_trip_separator,
@@ -179,7 +186,7 @@ class Py3status:
                            },
                            {
                             'full_text': ft_trips[1],
-                            'color': colors[1]
+                            'color': self.colors[1]
                           },
                           {
                             'full_text': self.t_trip_separator,
@@ -187,21 +194,23 @@ class Py3status:
                           },
                           {
                             'full_text': ft_trips[2],
-                            'color': colors[2]
+                            'color': self.colors[1]
                           }]
 
         composites = {
-            'route': self.py3.composite_create(ft_route_dir),
+            'route': self.py3.composite_create(self.ft_route_dir),
             'trips': self.py3.composite_create(ft_trips_display)
         } 
 
         return {
                 'cached_until': self.py3.time_in(50),
+                #'full_text': self.colors[1]
                 'composite': self.py3.safe_format(self.format, composites)
             }
 
     def on_click(self, event):
         self.button = event['button']
+
 
 if __name__ == "__main__":
     """
