@@ -22,19 +22,15 @@ def getJSON(appID, apiKey, routeNo, stopNo):
 
 # Parses relevant data from the JSON response into a dict
 def parseJSON(data, direction):
-    if direction == 'east':
-        dirNo = 0
-    elif direction == 'west':
-        dirNo = 1
-        
+    dirNo = 0 if direction == 'east' else 1
+    
     stopNo = data['GetNextTripsForStopResult']['StopNo']
     stopLabel = data['GetNextTripsForStopResult']['StopLabel']
 
     if type(data['GetNextTripsForStopResult']['Route']['RouteDirection']) is list:
         routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteLabel']
 
-        routeNo = str(
-                data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteNo'])
+        routeNo = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteNo']
 
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Direction']
 
@@ -42,8 +38,7 @@ def parseJSON(data, direction):
     else:
         routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteLabel']
 
-        routeNo = str(
-                data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteNo'])
+        routeNo = data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteNo']
 
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Direction']
 
@@ -84,7 +79,8 @@ class Py3status:
     def __init__(self):
         self.button = None
         self.button_down = False
-    
+        
+        # Path relative to ~ for API login details (appID, apiKey)
         path = os.path.abspath('git/py3status-octranspo/login')
     
         self.login_file = open(path)
