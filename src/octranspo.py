@@ -14,8 +14,8 @@ class Py3status:
     format_error = '{icon} {routeNo}'
 
     t_icon = ''
-    t_no_trip = '-'
-    t_trip_separator = '/'
+    t_no_trip = ''
+    t_trip_separator = ' '
 
     routeNo = '95' 
     stopNo = '3000'
@@ -23,7 +23,8 @@ class Py3status:
     low_thresh = 15
     refresh_interval = 60
     max_trip_time = 60
-    
+    max_trips = 3
+
     def __init__(self):
         self.button = None
         self.button_down = False
@@ -154,33 +155,35 @@ class Py3status:
     # Initializes the {trips} string
     def _initTripsComposite(self):
         ft_trips = [' '] * 3
+
         for i in range(0, len(self.result['tripTimes'])):
             ft_trips[i] = self.py3.safe_format(
                     self.format_trip,
                     {
                       'trip': self.result['tripTimes'][i]
                     })
+       
+        ft_trips_dict = []
         
-        ft_trips_dict = [{
-                           'full_text': ft_trips[0],
-                           'color': self.colors[0],
-                         },
-                         {
-                           'full_text': self.t_trip_separator,
-                           'color': self.py3.COLOR_HIGH
-                         },
-                         {
-                           'full_text': ft_trips[1],
-                           'color': self.colors[1]
-                         },
-                         {    
-                           'full_text': self.t_trip_separator,
-                           'color': self.py3.COLOR_HIGH
-                         },
-                         {
-                           'full_text': ft_trips[2],
-                           'color': self.colors[2]
-                         }]
+        # Walk the ft_trips string backwards, adding trip times as
+        # we go and separators as needed
+        for i in range(self.max_trips - 1, -1, -1):
+            ft_trips_dict.append(
+                    {
+                      'full_text': ft_trips[i],
+                      'color': self.colors[i]
+                    })
+            
+            # If the current trip time is t_no_trip, we know it won't be 
+            # displayed, and so we don't include any separators
+            if ft_trips[i] != self.t_no_trip and i != 0:
+               ft_trips_dict.append(
+                       {
+                         'full_text': self.t_trip_separator,
+                         'color': self.py3.COLOR_HIGH
+                       }) 
+
+        ft_trips_dict.reverse()
 
         return self.py3.composite_create(ft_trips_dict)
 
