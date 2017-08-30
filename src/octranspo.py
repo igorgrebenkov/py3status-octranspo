@@ -82,6 +82,8 @@ class Py3status:
     def __init__(self):
         self.button = None
         self.button_down = False
+        self.UNSCHEDULED = '-'
+        self.NOGPS = '-1'
         
         # Path relative to ~ for API login details (appID, apiKey)
         path = os.path.abspath('git/py3status-octranspo/login')
@@ -110,15 +112,17 @@ class Py3status:
         colors = [self.py3.COLOR_SCHED] * 3
 
         for i in range(0, len(result['tripAges'])):
-            if result['tripTimes'][i] == '-':
+            trip_time = result['tripTimes'][i]
+
+            if trip_time == self.UNSCHEDULED:
                 colors[i] = self.py3.COLOR_SCHED
-            elif result['tripAges'][i] == '-1':
-                if int(result['tripTimes'][i]) <= self.low_thresh:
+            elif result['tripAges'][i] == self.NOGPS:
+                if int(trip_time) <= self.low_thresh:
                     colors[i] = self.py3.COLOR_LOW_SCHED
                 else:
                     colors[i] = self.py3.COLOR_SCHED
             else:
-                if int(result['tripTimes'][i]) <= self.low_thresh:
+                if int(trip_time) <= self.low_thresh:
                     colors[i] = self.py3.COLOR_LOW_GPS
                 else:
                     colors[i] = self.py3.COLOR_GPS
@@ -129,7 +133,6 @@ class Py3status:
             self.button_down = False
 
         # Button action for showing route destination 
-
         if self.button:
             ft_route_dir = self.py3.safe_format('  {routeNo} {routeLabel} - {stopLabel} (',
                     {
