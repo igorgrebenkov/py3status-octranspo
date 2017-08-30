@@ -103,31 +103,17 @@ class Py3status:
                    }
 
         result = parseData(data, self.direction)
-        
-        # if result['trip1_age'] == "-1":
-        #     color1 = self.py3.COLOR_SCHED
-        # else:
-        #     color1 = self.py3.COLOR_GPS
 
-        # if result['trip2_age'] == "-1":
-        #     color2 = self.py3.COLOR_SCHED
-        # else:
-        #     color2 = self.py3.COLOR_GPS
+        colors = [self.py3.COLOR_SCHED] * 3
 
-        # if result['trip3_age'] == "-1":
-        #     color3 = self.py3.COLOR_SCHED
-        # else:
-        #     color3 = self.py3.COLOR_GPS
-
-        # # Assign color based on trip time relative to low_threshold 
-        # if int(result['trip1']) <= self.low_thresh:
-        #     color1 = self.py3.COLOR_LOW
-        
-        # if int(result['trip2']) <= self.low_thresh:
-        #     color2 = self.py3.COLOR_LOW
-        
-        # if int(result['trip3']) <= self.low_thresh:
-        #     color3 = self.py3.COLOR_LOW
+        for i in range(0, len(result['tripAges'])):
+            if result['tripAges'][i] == "-1":
+                colors[i] = self.py3.COLOR_SCHED
+            else:
+                colors[i] = self.py3.COLOR_GPS
+            
+            if int(result['tripTimes'][i]) <= self.low_thresh:
+                colors[i] = self.py3.COLOR_LOW
         
         # For button toggling
         if self.button_down:
@@ -150,26 +136,10 @@ class Py3status:
                       'direction': result['routeDir'][0], 
                     })
 
-        ft_trips = [' ', ' ', ' ']
+        ft_trips = [' '] * 3
         
         for i in range(0, len(result['tripTimes'])):
             ft_trips[i] = self.py3.safe_format(result['tripTimes'][i])
-       
-        # # Output text
-        # ft_trip1 = self.py3.safe_format('{trip1}', 
-        #         {
-        #           'trip1': result['tripTimes'][0], 
-        #         })
-        
-        # ft_trip2 = self.py3.safe_format('{trip2}', 
-        #         {
-        #           'trip2': result['tripTimes'][1], 
-        #         })
-        
-        # ft_trip3 = self.py3.safe_format('{trip3}', 
-        #         {
-        #           'trip3': result['tripTimes'][2], 
-        #         })
 
         ft_separator = self.py3.safe_format(' / ')
 
@@ -178,31 +148,31 @@ class Py3status:
                 'composite': [
                     {
                       'full_text': ft_route_dir,
-                      # 'color': self.py3.COLOR_HIGH
+                      'color': self.py3.COLOR_HIGH
                     },   
                     {
                       'full_text': ft_trips[0],
-                      # 'color': color1
+                      'color': colors[0]
                     },
                     {
                       'full_text': ft_separator,
-                      # 'color': self.py3.COLOR_HIGH
+                      'color': self.py3.COLOR_HIGH
                     },
                     {
                       'full_text': ft_trips[1],
-                      # 'color': color2
+                      'color': colors[1]
                     },
                     {
                       'full_text': ft_separator,
-                      # 'color': self.py3.COLOR_HIGH
+                      'color': self.py3.COLOR_HIGH
                     },
                     {
                       'full_text': ft_trips[2],
-                      # 'color': color3
+                      'color': colors[2]
                     },
                     {
                       'full_text': self.py3.safe_format(')'),
-                      # 'color': self.py3.COLOR_HIGH
+                      'color': self.py3.COLOR_HIGH
                     }
                 ]
             }
