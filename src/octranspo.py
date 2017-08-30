@@ -24,28 +24,31 @@ def getJSON(appID, apiKey, routeNo, stopNo):
 def parseJSON(data, direction):
     dirNo = 0 if direction == 'east' else 1
     
-    stopNo = data['GetNextTripsForStopResult']['StopNo']
-    stopLabel = data['GetNextTripsForStopResult']['StopLabel']
-
+    stopNo = data.get('StopNo')
+    stopLabel = data.get('StopLabel')
+    
+    route_direction = data.get('GetNextTripsForStopResult').get('Route').get('RouteDirection')
+    
+    # if 'RouteDirection' is a list, then we have to index the proper direction
     if type(data['GetNextTripsForStopResult']['Route']['RouteDirection']) is list:
-        routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteLabel']
-
-        routeNo = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteNo']
-
-        routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Direction']
-
-        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips'] 
+        routeLabel = route_direction[dirNo].get('RouteLabel') 
+        
+        routeNo = route_direction[dirNo].get('RouteNo')
+        
+        routeDir = route_direction[dirNo].get('Direction')
+        
+        trips = route_direction[dirNo].get('Trips') 
     else:
-        routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteLabel']
-
-        routeNo = data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteNo']
-
-        routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Direction']
-
-        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips'] 
-
+        routeLabel = route_direction.get('RouteLabel') 
+        
+        routeNo = route_direction.get('RouteNo')
+        
+        routeDir = route_direction.get('Direction')
+        
+        trips = route_direction.get('Trips') 
+        
     tripTimes = ['-'] * 3
-    tripAges = ['-'] * 3
+    tripAges = [''] * 3
 
     # If there are trips, we populate tripTimes and tripAges
     if trips:
