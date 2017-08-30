@@ -21,7 +21,7 @@ def getJSON(appID, apiKey, routeNo, stopNo):
         return 'CONNECTION_ERROR'
 
 # Parses relevant data from the JSON response into a dict
-def parseData(data, direction):
+def parseJSON(data, direction):
     if direction == 'east':
         dirNo = 0
     elif direction == 'west':
@@ -74,6 +74,7 @@ def parseData(data, direction):
              'tripAges': tripAges,
            }
 
+# Module class
 class Py3status:
     routeNo = '3000' 
     stopNo = '95'
@@ -104,7 +105,7 @@ class Py3status:
                      'color': self.py3.COLOR_LOW_GPS
                    }
 
-        result = parseData(data, self.direction)
+        result = parseJSON(data, self.direction)
 
         # Assign colors based on whether time is GPS or not and based on low_thresh
         colors = [self.py3.COLOR_SCHED] * 3
