@@ -70,18 +70,19 @@ def parseJSON(data, direction):
 class Py3status:
     format = '{route} ({trips})'
     format_route = '{icon} {routeNo} {direction}'
-    format_route_click = '{icon} {routeNo} {routeLabel} {separator} {stopLabel} ({stopNo})'
+    format_route_click = '{icon} {routeNo} {routeLabel} - {stopLabel} ({stopNo})'
     format_trip = '{trip}'
     format_error = '{icon} {routeNo}'
 
     t_icon = ''
-    t_separator = '-'
     t_trip_separator = '/'
 
     routeNo = '95' 
     stopNo = '3000'
     direction = 'east'
     low_thresh = 15
+    refresh_interval = 60
+    max_time = 60
     
     def __init__(self):
         self.button = None
@@ -129,7 +130,6 @@ class Py3status:
                     self.format_route_click,
                     {
                       'icon': self.t_icon,
-                      'separator': self.t_separator,
                       'routeNo': self.result['routeNo'],
                       'routeLabel': self.result['routeLabel'],
                       'stopNo' : self.result['stopNo'],
@@ -208,8 +208,7 @@ class Py3status:
         } 
 
         return {
-                'cached_until': self.py3.time_in(50),
-                #'full_text': self.colors[1]
+                'cached_until': self.py3.time_in(self.refresh_interval),
                 'composite': self.py3.safe_format(self.format, output_composite)
             }
     
