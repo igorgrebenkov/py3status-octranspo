@@ -146,6 +146,7 @@ class Py3status:
                     })
 
         return ft_route
+
     # Initializes the {trips} string
     def _initTripsComposite(self):
         ft_trips = [' '] * 3
@@ -157,25 +158,25 @@ class Py3status:
                     })
         
         ft_trips_dict = [{
-                                'full_text': ft_trips[0],
-                                'color': self.colors[0]
-                              },
-                              {
-                                'full_text': self.t_trip_separator,
-                                'color': self.py3.COLOR_HIGH
-                              },
-                              {
-                                'full_text': ft_trips[1],
-                                'color': self.colors[1]
-                              },
-                              {    
-                                'full_text': self.t_trip_separator,
-                                'color': self.py3.COLOR_HIGH
-                              },
-                              {
-                                'full_text': ft_trips[2],
-                                'color': self.colors[1]
-                              }]
+                           'full_text': ft_trips[0],
+                           'color': self.colors[0]
+                         },
+                         {
+                           'full_text': self.t_trip_separator,
+                           'color': self.py3.COLOR_HIGH
+                         },
+                         {
+                           'full_text': ft_trips[1],
+                           'color': self.colors[1]
+                         },
+                         {    
+                           'full_text': self.t_trip_separator,
+                           'color': self.py3.COLOR_HIGH
+                         },
+                         {
+                           'full_text': ft_trips[2],
+                           'color': self.colors[1]
+                         }]
 
         return self.py3.composite_create(ft_trips_dict)
 
@@ -211,7 +212,8 @@ class Py3status:
                 #'full_text': self.colors[1]
                 'composite': self.py3.safe_format(self.format, output_composite)
             }
-
+    
+    # Function for button events
     def on_click(self, event):
         self.button = event['button']
 
