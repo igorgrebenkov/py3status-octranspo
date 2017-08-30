@@ -17,8 +17,8 @@ class Py3status:
     t_no_trip = '-'
     t_trip_separator = '/'
 
-    routeNo = '221' 
-    stopNo = '6908'
+    routeNo = '95' 
+    stopNo = '3000'
     direction = 'east'
     low_thresh = 15
     refresh_interval = 60
@@ -31,7 +31,6 @@ class Py3status:
         self.NOGPS = '-1'
         
         # Path relative to ~ for API login details (appID, apiKey)
-        # path = os.path.abspath('login')
         path = os.path.abspath('git/py3status-octranspo/login')
     
         self.login_file = open(path)
@@ -49,7 +48,6 @@ class Py3status:
                   }
         try:
             r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload)
-            # print(r.url)
             return r.json()
         except Exception as e:
             return 'CONNECTION_ERROR'
@@ -91,7 +89,7 @@ class Py3status:
 
                     tripAges[i] = trips['Trip'][i]['AdjustmentAge']
             else:
-                if trips['Trip']['AdjustedScheduleTime'] <= self.max_trip_time:
+                if int(trips['Trip']['AdjustedScheduleTime']) <= self.max_trip_time:
                     tripTimes[0] = trips['Trip']['AdjustedScheduleTime']
 
                 tripAges[0] = trips['Trip']['AdjustmentAge']
@@ -131,7 +129,7 @@ class Py3status:
             self.button_down = False
 
         # Button action for showing route destination 
-        if self.button:
+        if self.button: 
             ft_route = self.py3.safe_format(
                     self.format_route_click,
                     {
@@ -165,7 +163,7 @@ class Py3status:
         
         ft_trips_dict = [{
                            'full_text': ft_trips[0],
-                           'color': self.colors[0]
+                           'color': self.colors[0],
                          },
                          {
                            'full_text': self.t_trip_separator,
@@ -216,12 +214,11 @@ class Py3status:
         return {
                 'cached_until': self.py3.time_in(self.refresh_interval),
                 'composite': self.py3.safe_format(self.format, output_composite)
-            }
+               }
     
     # Function for button events
     def on_click(self, event):
         self.button = event['button']
-
 
 if __name__ == "__main__":
     """
