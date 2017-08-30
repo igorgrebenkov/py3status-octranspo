@@ -125,7 +125,7 @@ class Py3status:
 
         # Button action for showing route destination 
         if self.button:
-            self.ft_route = self.py3.safe_format(
+            ft_route = self.py3.safe_format(
                     self.format_route_click,
                     {
                       'icon': self.t_icon,
@@ -137,7 +137,7 @@ class Py3status:
                     })
             self.button_down = True
         else:
-            self.ft_route = self.py3.safe_format(
+            ft_route = self.py3.safe_format(
                     self.format_route,
                     { 
                       'icon': self.t_icon,
@@ -145,8 +145,9 @@ class Py3status:
                       'direction': self.result['routeDir'][0], 
                     })
 
+        return ft_route
     # Initializes the {trips} string
-    def _initTripsString(self):
+    def _initTripsComposite(self):
         ft_trips = [' '] * 3
         for i in range(0, len(self.result['tripTimes'])):
             ft_trips[i] = self.py3.safe_format(
@@ -155,7 +156,7 @@ class Py3status:
                       'trip': self.result['tripTimes'][i]
                     })
         
-        self.ft_trips_dict = [{
+        ft_trips_dict = [{
                                 'full_text': ft_trips[0],
                                 'color': self.colors[0]
                               },
@@ -175,6 +176,8 @@ class Py3status:
                                 'full_text': ft_trips[2],
                                 'color': self.colors[1]
                               }]
+
+        return self.py3.composite_create(ft_trips_dict)
 
     # Main function run by py3status  
     def OCTranspo(self):
@@ -197,19 +200,16 @@ class Py3status:
         self.result = parseJSON(data, self.direction)
 
         self._assignColors()
-        self._initRouteString()
-        self._initTripsString()
 
-
-        composites = {
-            'route': self.py3.composite_create(self.ft_route),
-            'trips': self.py3.composite_create(self.ft_trips_dict)
+        output_composite = {
+            'route': self._initRouteString(),
+            'trips': self._initTripsComposite()
         } 
 
         return {
                 'cached_until': self.py3.time_in(50),
                 #'full_text': self.colors[1]
-                'composite': self.py3.safe_format(self.format, composites)
+                'composite': self.py3.safe_format(self.format, output_composite)
             }
 
     def on_click(self, event):
