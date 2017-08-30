@@ -22,7 +22,7 @@ class Py3status:
     direction = 'east'
     low_thresh = 15
     refresh_interval = 60
-    max_trip_time = 60
+    max_trip_time = 200
     max_trips = 3
 
     def __init__(self):
@@ -163,29 +163,25 @@ class Py3status:
                       'trip': self.result['tripTimes'][i]
                     })
        
-        ft_trips_dict = []
+        ft_trips_dicts = []
         
-        # Walk the ft_trips string backwards, adding trip times as
-        # we go and separators as needed
         for i in range(self.max_trips - 1, -1, -1):
-            ft_trips_dict.append(
+            ft_trips_dicts.append(
                     {
                       'full_text': ft_trips[i],
                       'color': self.colors[i]
                     })
             
-            # If the current trip time is t_no_trip, we know it won't be 
-            # displayed, and so we don't include any separators
             if ft_trips[i] != self.t_no_trip and i != 0:
-               ft_trips_dict.append(
+               ft_trips_dicts.append(
                        {
                          'full_text': self.t_trip_separator,
                          'color': self.py3.COLOR_HIGH
                        }) 
 
-        ft_trips_dict.reverse()
+        ft_trips_dicts.reverse()
 
-        return self.py3.composite_create(ft_trips_dict)
+        return self.py3.composite_create(ft_trips_dicts)
 
     # Main function run by py3status  
     def OCTranspo(self):
