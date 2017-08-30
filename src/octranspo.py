@@ -68,11 +68,21 @@ def parseJSON(data, direction):
 
 # Module class
 class Py3status:
+    format = '{route} ({trips})'
+    format_route = '{icon} {routeNo} {direction}'
+    format_route_click = '{icon} {routeNo} {routeLabel} {separator} {stopLabel} ({stopNo})'
+    format_trip = '{trip}'
+    format_error = '{icon} {routeNo}'
+
+    t_icon = ''
+    t_separator = '-'
+    t_trip_separator = '/'
+
     routeNo = '95' 
     stopNo = '3000'
     direction = 'east'
     low_thresh = 15
-
+    
     def __init__(self):
         self.button = None
         self.button_down = False
@@ -91,9 +101,11 @@ class Py3status:
         
         # Display routeNo in red if no connection established
         if data == 'CONNECTION_ERROR':
-            ft_error = self.py3.safe_format('  {routeNo}',
+            ft_error = self.py3.safe_format(
+                    self.format_error,
                     {
-                      'routeNo': self.routeNo,
+                      'icon': self.t_icon,
+                      'routeNo': self.routeNo
                     })
             return {
                      'full_text': ft_error,
@@ -129,8 +141,10 @@ class Py3status:
         # Button action for showing route destination 
         if self.button:
             ft_route_dir = self.py3.safe_format(
-                    '  {routeNo} {routeLabel} - {stopLabel} ({stopNo}) (',
+                    self.format_route_click,
                     {
+                        'icon': self.t_icon,
+                        'separator': self.t_separator,
                         'routeNo': result['routeNo'],
                         'routeLabel': result['routeLabel'],
                         'stopNo' : result['stopNo'],
@@ -138,51 +152,52 @@ class Py3status:
                     })
             self.button_down = True
         else:
-            ft_route_dir = self.py3.safe_format(' {routeNo} {direction} (', 
+            ft_route_dir = self.py3.safe_format(
+                    self.format_route,
                     { 
+                      'icon': self.t_icon,
                       'routeNo': result['routeNo'], 
                       'direction': result['routeDir'][0], 
                     })
-        
+
         # Init and populate display strings for trip times
         ft_trips = [' '] * 3
         for i in range(0, len(result['tripTimes'])):
-            ft_trips[i] = self.py3.safe_format(result['tripTimes'][i])
+            ft_trips[i] = self.py3.safe_format(
+                    self.format_trip,
+                    {
+                      'trip': result['tripTimes'][i]
+                    })
+        
+        ft_trips_display = [{
+                             'full_text': ft_trips[0],
+                             'color': colors[0]
+                           },
+                           {
+                             'full_text': self.t_trip_separator,
+                             'color': self.py3.COLOR_HIGH
+                           },
+                           {
+                            'full_text': ft_trips[1],
+                            'color': colors[1]
+                          },
+                          {
+                            'full_text': self.t_trip_separator,
+                            'color': self.py3.COLOR_HIGH
+                          },
+                          {
+                            'full_text': ft_trips[2],
+                            'color': colors[2]
+                          }]
 
-        ft_separator = self.py3.safe_format(' / ')
+        composites = {
+            'route': self.py3.composite_create(ft_route_dir),
+            'trips': self.py3.composite_create(ft_trips_display)
+        } 
 
         return {
                 'cached_until': self.py3.time_in(50),
-                'composite': [
-                    {
-                      'full_text': ft_route_dir,
-                      'color': self.py3.COLOR_HIGH
-                    },   
-                    {
-                      'full_text': ft_trips[0],
-                      'color': colors[0]
-                    },
-                    {
-                      'full_text': ft_separator,
-                      'color': self.py3.COLOR_HIGH
-                    },
-                    {
-                      'full_text': ft_trips[1],
-                      'color': colors[1]
-                    },
-                    {
-                      'full_text': ft_separator,
-                      'color': self.py3.COLOR_HIGH
-                    },
-                    {
-                      'full_text': ft_trips[2],
-                      'color': colors[2]
-                    },
-                    {
-                      'full_text': self.py3.safe_format(')'),
-                      'color': self.py3.COLOR_HIGH
-                    }
-                ]
+                'composite': self.py3.safe_format(self.format, composites)
             }
 
     def on_click(self, event):
