@@ -5,66 +5,7 @@ __author__ = "Igor Grebenkov"
 
 import json, requests, os
 
-# Fetches a JSON response from the OCTranspo API
-def getJSON(appID, apiKey, routeNo, stopNo):
-    payload = { 
-                'appID': appID,
-                'apiKey': apiKey, 
-                'routeNo': routeNo,
-                'stopNo': stopNo,
-                'format': 'JSON' 
-              }
-    try:
-        r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload)
-        return r.json()
-    except Exception as e:
-        return 'CONNECTION_ERROR'
 
-# Parses relevant data from the JSON response into a dict
-def parseJSON(data, direction):
-    dirNo = 0 if direction == 'east' else 1
-    
-    stopNo = data['GetNextTripsForStopResult']['StopNo']
-    stopLabel = data['GetNextTripsForStopResult']['StopLabel']
-    
-    route_direction = data['GetNextTripsForStopResult']['Route']['RouteDirection']
-    
-    # if 'RouteDirection' is a list, then we have to index the proper direction
-    if type(route_direction) is list:
-        routeLabel = route_direction[dirNo].get('RouteLabel') 
-        routeNo = route_direction[dirNo].get('RouteNo')
-        routeDir = route_direction[dirNo].get('Direction')
-        trips = route_direction[dirNo].get('Trips') 
-    else:
-        routeLabel = route_direction.get('RouteLabel') 
-        routeNo = route_direction.get('RouteNo')
-        routeDir = route_direction.get('Direction')
-        trips = route_direction.get('Trips') 
-        
-    tripTimes = ['-'] * 3
-    tripAges = [''] * 3
-
-    # If there are trips, we populate tripTimes and tripAges
-    if trips:
-        if type(trips['Trip']) is list:
-            trip_cnt = len(trips['Trip'])
-    
-            # Populate list of trip times and their adjustment ages
-            for i in range(0, trip_cnt):
-                tripTimes[i] = trips['Trip'][i]['AdjustedScheduleTime']
-                tripAges[i] = trips['Trip'][i]['AdjustmentAge']
-        else:
-            tripTimes[0] = trips['Trip']['AdjustedScheduleTime']
-            tripAges[0] = trips['Trip']['AdjustmentAge']
-        
-    return { 'stopNo': stopNo,
-             'stopLabel': stopLabel,
-             'routeLabel': routeLabel,
-             'routeNo': routeNo,
-             'routeDir': routeDir,
-             'tripTimes': tripTimes,
-             'tripAges': tripAges,
-           }
 
 # Module class
 class Py3status:
@@ -75,6 +16,7 @@ class Py3status:
     format_error = '{icon} {routeNo}'
 
     t_icon = ''
+    t_no_trip = '-'
     t_trip_separator = '/'
 
     routeNo = '95' 
@@ -96,6 +38,67 @@ class Py3status:
         self.login_file = open(path)
         self.appID = self.login_file.readline().rstrip('\n')
         self.apiKey = self.login_file.readline().rstrip('\n')
+
+    # Fetches a JSON response from the OCTranspo API
+    def _getJSON(self):
+        payload = { 
+                    'appID': self.appID,
+                    'apiKey': self.apiKey, 
+                    'routeNo': self.routeNo,
+                    'stopNo': self.stopNo,
+                    'format': 'JSON' 
+                  }
+        try:
+            r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload)
+            return r.json()
+        except Exception as e:
+            return 'CONNECTION_ERROR'
+        
+    # Parses relevant data from the JSON response into a dict
+    def _parseJSON(self, data):
+        dirNo = 0 if self.direction == 'east' else 1
+        
+        stopNo = data['GetNextTripsForStopResult']['StopNo']
+        stopLabel = data['GetNextTripsForStopResult']['StopLabel']
+        
+        route_direction = data['GetNextTripsForStopResult']['Route']['RouteDirection']
+        
+        # if 'RouteDirection' is a list, then we have to index the proper direction
+        if type(route_direction) is list:
+            routeLabel = route_direction[dirNo].get('RouteLabel') 
+            routeNo = route_direction[dirNo].get('RouteNo')
+            routeDir = route_direction[dirNo].get('Direction')
+            trips = route_direction[dirNo].get('Trips') 
+        else:
+            routeLabel = route_direction.get('RouteLabel') 
+            routeNo = route_direction.get('RouteNo')
+            routeDir = route_direction.get('Direction')
+            trips = route_direction.get('Trips') 
+            
+        tripTimes = ['-'] * 3
+        tripAges = [''] * 3
+
+        # If there are trips, we populate tripTimes and tripAges
+        if trips:
+            if type(trips['Trip']) is list:
+                trip_cnt = len(trips['Trip'])
+        
+                # Populate list of trip times and their adjustment ages
+                for i in range(0, trip_cnt):
+                    tripTimes[i] = trips['Trip'][i]['AdjustedScheduleTime']
+                    tripAges[i] = trips['Trip'][i]['AdjustmentAge']
+            else:
+                tripTimes[0] = trips['Trip']['AdjustedScheduleTime']
+                tripAges[0] = trips['Trip']['AdjustmentAge']
+            
+        return { 'stopNo': stopNo,
+                 'stopLabel': stopLabel,
+                 'routeLabel': routeLabel,
+                 'routeNo': routeNo,
+                 'routeDir': routeDir,
+                 'tripTimes': tripTimes,
+                 'tripAges': tripAges,
+               }
 
     # Assign self.colors based on whether time is GPS or not and based on low_thresh
     def _assignColors(self):
@@ -182,9 +185,9 @@ class Py3status:
 
     # Main function run by py3status  
     def OCTranspo(self):
-        data = getJSON(self.appID, self.apiKey, self.routeNo, self.stopNo)
+        data = self._getJSON()
         
-        # Display routeNo in red if no connection established
+        # Display {route} in COLOR_LOW_GPS if no connection established
         if data == 'CONNECTION_ERROR':
             ft_error = self.py3.safe_format(
                     self.format_error,
@@ -198,7 +201,7 @@ class Py3status:
                      'color': self.py3.COLOR_LOW_GPS
                    }
 
-        self.result = parseJSON(data, self.direction)
+        self.result = self._parseJSON(data)
 
         self._assignColors()
 
