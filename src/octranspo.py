@@ -62,8 +62,8 @@ def parseData(data, direction):
                 tripTimes[i] = trips['Trip'][i]['AdjustedScheduleTime']
                 tripAges[i] = trips['Trip'][i]['AdjustmentAge']
         else:
-            tripTimes[i] = trips['Trip']['AdjustedScheduleTime']
-            tripAges[i] = (trips['Trip']['AdjustmentAge'])
+            tripTimes[0] = trips['Trip']['AdjustedScheduleTime']
+            tripAges[0] = trips['Trip']['AdjustmentAge']
         
     return { 'stopNo': stopNo,
              'stopLabel': stopLabel,
@@ -101,7 +101,7 @@ class Py3status:
                     })
             return {
                      'full_text': ft_error,
-                     'color': self.py3.COLOR_LOW_THRESH
+                     'color': self.py3.COLOR_LOW_GPS
                    }
 
         result = parseData(data, self.direction)
@@ -110,13 +110,18 @@ class Py3status:
         colors = [self.py3.COLOR_SCHED] * 3
 
         for i in range(0, len(result['tripAges'])):
-            if result['tripAges'][i] == "-1":
+            if result['tripTimes'][i] == '-':
                 colors[i] = self.py3.COLOR_SCHED
+            elif result['tripAges'][i] == '-1':
+                if int(result['tripTimes'][i]) <= self.low_thresh:
+                    colors[i] = self.py3.COLOR_LOW_SCHED
+                else:
+                    colors[i] = self.py3.COLOR_SCHED
             else:
-                colors[i] = self.py3.COLOR_GPS
-            
-            if result['tripTimes'][i] == '-' or int(result['tripTimes'][i]) <= self.low_thresh:
-                colors[i] = self.py3.COLOR_LOW_THRESH
+                if int(result['tripTimes'][i]) <= self.low_thresh:
+                    colors[i] = self.py3.COLOR_LOW_GPS
+                else:
+                    colors[i] = self.py3.COLOR_GPS
         
         # Enables button toggling
         if self.button_down:
@@ -124,6 +129,7 @@ class Py3status:
             self.button_down = False
 
         # Button action for showing route destination 
+
         if self.button:
             ft_route_dir = self.py3.safe_format('  {routeNo} {routeLabel} - {stopLabel} (',
                     {
