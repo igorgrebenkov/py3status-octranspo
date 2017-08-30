@@ -40,7 +40,7 @@ def parseData(data, direction):
 
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Direction']
 
-        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'] 
+        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips'] 
     else:
         routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteLabel']
 
@@ -49,18 +49,21 @@ def parseData(data, direction):
 
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Direction']
 
-        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip'] 
+        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips'] 
     
-    if type(trips) is list:
-        trip_cnt = len(trips)
+    if not trips:
+        tripTimes = ['-1'] * 3
+        tripAges = [''] * 3
+    elif type(trips['Trip']) is list:
+        trip_cnt = len(trips['Trip'])
     
         # Populate list of trip times and their adjustment ages
         for i in range(0, trip_cnt):
-            tripTimes.append(trips[i]['AdjustedScheduleTime'])
-            tripAges.append(trips[i]['AdjustmentAge'])
+            tripTimes.append(trips['Trip'][i]['AdjustedScheduleTime'])
+            tripAges.append(trips['Trip'][i]['AdjustmentAge'])
     else:
-        tripTimes.append(trips['AdjustedScheduleTime'])
-        tripAges.append(trips['AdjustmentAge'])
+        tripTimes.append(trips['Trip']['AdjustedScheduleTime'])
+        tripAges.append(trips['Trip']['AdjustmentAge'])
         
     return { 'stopNo': stopNo,
              'stopLabel': stopLabel,
@@ -139,7 +142,8 @@ class Py3status:
         ft_trips = [' '] * 3
         
         for i in range(0, len(result['tripTimes'])):
-            ft_trips[i] = self.py3.safe_format(result['tripTimes'][i])
+            if int(result['tripTimes'][i]) > 0:
+                ft_trips[i] = self.py3.safe_format(result['tripTimes'][i])
 
         ft_separator = self.py3.safe_format(' / ')
 
