@@ -39,8 +39,8 @@ def parseData(data, direction):
                 data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteNo'])
 
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Direction']
-        
-        trip_list = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'] 
+
+        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['Trips']['Trip'] 
     else:
         routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteLabel']
 
@@ -49,14 +49,18 @@ def parseData(data, direction):
 
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Direction']
 
-        trip_list = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip'] 
-
-    trip_cnt = len(trip_list)
+        trips = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip'] 
     
-    # Populate list of trip times and their adjustment ages
-    for i in range(0, trip_cnt):
-        tripTimes.append(trip_list[i]['AdjustedScheduleTime'])
-        tripAges.append(trip_list[i]['AdjustmentAge'])
+    if type(trips) is list:
+        trip_cnt = len(trips)
+    
+        # Populate list of trip times and their adjustment ages
+        for i in range(0, trip_cnt):
+            tripTimes.append(trips[i]['AdjustedScheduleTime'])
+            tripAges.append(trips[i]['AdjustmentAge'])
+    else:
+        tripTimes.append(trips['AdjustedScheduleTime'])
+        tripAges.append(trips['AdjustmentAge'])
         
     return { 'stopNo': stopNo,
              'stopLabel': stopLabel,
@@ -145,22 +149,27 @@ class Py3status:
                       'routeNo': result['routeNo'], 
                       'direction': result['routeDir'][0], 
                     })
+
+        ft_trips = [' ', ' ', ' ']
+        
+        for i in range(0, len(result['tripTimes'])):
+            ft_trips[i] = self.py3.safe_format(result['tripTimes'][i])
        
-        # Output text
-        ft_trip1 = self.py3.safe_format('{trip1}', 
-                {
-                  'trip1': result['tripTimes'][0], 
-                })
+        # # Output text
+        # ft_trip1 = self.py3.safe_format('{trip1}', 
+        #         {
+        #           'trip1': result['tripTimes'][0], 
+        #         })
         
-        ft_trip2 = self.py3.safe_format('{trip2}', 
-                {
-                  'trip2': result['tripTimes'][1], 
-                })
+        # ft_trip2 = self.py3.safe_format('{trip2}', 
+        #         {
+        #           'trip2': result['tripTimes'][1], 
+        #         })
         
-        ft_trip3 = self.py3.safe_format('{trip3}', 
-                {
-                  'trip3': result['tripTimes'][2], 
-                })
+        # ft_trip3 = self.py3.safe_format('{trip3}', 
+        #         {
+        #           'trip3': result['tripTimes'][2], 
+        #         })
 
         ft_separator = self.py3.safe_format(' / ')
 
@@ -172,7 +181,7 @@ class Py3status:
                       # 'color': self.py3.COLOR_HIGH
                     },   
                     {
-                      'full_text': ft_trip1,
+                      'full_text': ft_trips[0],
                       # 'color': color1
                     },
                     {
@@ -180,7 +189,7 @@ class Py3status:
                       # 'color': self.py3.COLOR_HIGH
                     },
                     {
-                      'full_text': ft_trip2,
+                      'full_text': ft_trips[1],
                       # 'color': color2
                     },
                     {
@@ -188,7 +197,7 @@ class Py3status:
                       # 'color': self.py3.COLOR_HIGH
                     },
                     {
-                      'full_text': ft_trip3,
+                      'full_text': ft_trips[2],
                       # 'color': color3
                     },
                     {
