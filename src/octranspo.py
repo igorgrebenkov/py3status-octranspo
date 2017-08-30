@@ -7,15 +7,14 @@ import json, requests, os
 
 # Module class
 class Py3status:
-    format = '{route} ({trips})'
+    format = '{route}  {trips}'
     format_route = '{icon} {routeNo} {direction}'
     format_route_click = '{icon} {routeNo} {routeLabel} - {stopLabel} ({stopNo})'
     format_trip = '{trip}'
     format_error = '{icon} {routeNo}'
 
     t_icon = ''
-    t_no_trip = ''
-    t_trip_separator = ' '
+    t_trip_separator = '  '
 
     routeNo = '95' 
     stopNo = '3000'
@@ -28,7 +27,7 @@ class Py3status:
     def __init__(self):
         self.button = None
         self.button_down = False
-        self.UNSCHEDULED = self.t_no_trip
+        self.UNSCHEDULED = '' 
         self.NOGPS = '-1'
         
         # Path relative to ~ for API login details (appID, apiKey)
@@ -74,7 +73,7 @@ class Py3status:
             routeDir = route_direction.get('Direction')
             trips = route_direction.get('Trips') 
             
-        tripTimes = [self.t_no_trip] * 3
+        tripTimes = [self.UNSCHEDULED] * 3
         tripAges = [''] * 3
 
         # If there are trips, we populate tripTimes and tripAges
@@ -109,7 +108,7 @@ class Py3status:
         self.colors = [self.py3.COLOR_SCHED] * 3
         for i in range(0, len(self.result['tripTimes'])):
             trip_time = self.result['tripTimes'][i]
-            if trip_time == self.t_no_trip:
+            if trip_time == self.UNSCHEDULED:
                 self.colors[i] = self.py3.COLOR_SCHED
             elif self.result['tripAges'][i] == self.NOGPS:
                 if int(trip_time) <= self.low_thresh:
@@ -172,7 +171,7 @@ class Py3status:
                       'color': self.colors[i]
                     })
             
-            if ft_trips[i] != self.t_no_trip and i != 0:
+            if ft_trips[i] != self.UNSCHEDULED and i != 0:
                ft_trips_dicts.append(
                        {
                          'full_text': self.t_trip_separator,
