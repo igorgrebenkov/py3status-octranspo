@@ -50,7 +50,7 @@ def parseData(data, direction):
         trips = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips'] 
 
     tripTimes = ['-'] * 3
-    tripAges = []
+    tripAges = ['-'] * 3
 
     # If there are trips, we populate tripTimes and tripAges
     if trips:
@@ -60,10 +60,10 @@ def parseData(data, direction):
             # Populate list of trip times and their adjustment ages
             for i in range(0, trip_cnt):
                 tripTimes[i] = trips['Trip'][i]['AdjustedScheduleTime']
-                tripAges.append(trips['Trip'][i]['AdjustmentAge'])
+                tripAges[i] = trips['Trip'][i]['AdjustmentAge']
         else:
             tripTimes[i] = trips['Trip']['AdjustedScheduleTime']
-            tripAges.append(trips['Trip']['AdjustmentAge'])
+            tripAges[i] = (trips['Trip']['AdjustmentAge'])
         
     return { 'stopNo': stopNo,
              'stopLabel': stopLabel,
@@ -79,7 +79,7 @@ class Py3status:
     stopNo = '95'
     direction = 'east'
     low_thresh = 15
-    
+
     def __init__(self):
         self.button = None
         self.button_down = False
@@ -89,7 +89,7 @@ class Py3status:
         self.login_file = open(path)
         self.appID = self.login_file.readline().rstrip('\n')
         self.apiKey = self.login_file.readline().rstrip('\n')
-    
+
     def OCTranspo(self):
         data = getJSON(self.appID, self.apiKey, self.routeNo, self.stopNo)
         
@@ -98,15 +98,15 @@ class Py3status:
             ft_error = self.py3.safe_format('  {routeNo}',
                     {
                       'routeNo': self.routeNo,
-                      'stopNo': self.stopNo
                     })
             return {
                      'full_text': ft_error,
-                     'color': self.py3.COLOR_LOW
+                     'color': self.py3.COLOR_LOW_THRESH
                    }
 
         result = parseData(data, self.direction)
 
+        # Assign colors based on whether time is GPS or not and based on low_thresh
         colors = [self.py3.COLOR_SCHED] * 3
 
         for i in range(0, len(result['tripAges'])):
@@ -116,9 +116,9 @@ class Py3status:
                 colors[i] = self.py3.COLOR_GPS
             
             if result['tripTimes'][i] == '-' or int(result['tripTimes'][i]) <= self.low_thresh:
-                colors[i] = self.py3.COLOR_LOW
+                colors[i] = self.py3.COLOR_LOW_THRESH
         
-        # For button toggling
+        # Enables button toggling
         if self.button_down:
             self.button = None
             self.button_down = False
@@ -139,8 +139,6 @@ class Py3status:
                       'direction': result['routeDir'][0], 
                     })
         
-        
-
         # Init and populate display strings for trip times
         ft_trips = [' '] * 3
         for i in range(0, len(result['tripTimes'])):
