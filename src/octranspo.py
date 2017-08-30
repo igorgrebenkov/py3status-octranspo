@@ -29,8 +29,6 @@ def parseData(data, direction):
         
     stopNo = data['GetNextTripsForStopResult']['StopNo']
     stopLabel = data['GetNextTripsForStopResult']['StopLabel']
-    tripTimes = []
-    tripAges = []
 
     if type(data['GetNextTripsForStopResult']['Route']['RouteDirection']) is list:
         routeLabel = data['GetNextTripsForStopResult']['Route']['RouteDirection'][dirNo]['RouteLabel']
@@ -50,20 +48,22 @@ def parseData(data, direction):
         routeDir = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Direction']
 
         trips = data['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips'] 
+
+    tripTimes = ['-'] * 3
+    tripAges = []
+
+    # If there are trips, we populate tripTimes and tripAges
+    if trips:
+        if type(trips['Trip']) is list:
+            trip_cnt = len(trips['Trip'])
     
-    if not trips:
-        tripTimes = ['-1'] * 3
-        tripAges = [''] * 3
-    elif type(trips['Trip']) is list:
-        trip_cnt = len(trips['Trip'])
-    
-        # Populate list of trip times and their adjustment ages
-        for i in range(0, trip_cnt):
-            tripTimes.append(trips['Trip'][i]['AdjustedScheduleTime'])
-            tripAges.append(trips['Trip'][i]['AdjustmentAge'])
-    else:
-        tripTimes.append(trips['Trip']['AdjustedScheduleTime'])
-        tripAges.append(trips['Trip']['AdjustmentAge'])
+            # Populate list of trip times and their adjustment ages
+            for i in range(0, trip_cnt):
+                tripTimes[i] = trips['Trip'][i]['AdjustedScheduleTime']
+                tripAges.append(trips['Trip'][i]['AdjustmentAge'])
+        else:
+            tripTimes[i] = trips['Trip']['AdjustedScheduleTime']
+            tripAges.append(trips['Trip']['AdjustmentAge'])
         
     return { 'stopNo': stopNo,
              'stopLabel': stopLabel,
@@ -115,7 +115,7 @@ class Py3status:
             else:
                 colors[i] = self.py3.COLOR_GPS
             
-            if int(result['tripTimes'][i]) <= self.low_thresh:
+            if result['tripTimes'][i] == '-' or int(result['tripTimes'][i]) <= self.low_thresh:
                 colors[i] = self.py3.COLOR_LOW
         
         # For button toggling
@@ -138,12 +138,13 @@ class Py3status:
                       'routeNo': result['routeNo'], 
                       'direction': result['routeDir'][0], 
                     })
-
-        ft_trips = [' '] * 3
         
+        
+
+        # Init and populate display strings for trip times
+        ft_trips = [' '] * 3
         for i in range(0, len(result['tripTimes'])):
-            if int(result['tripTimes'][i]) > 0:
-                ft_trips[i] = self.py3.safe_format(result['tripTimes'][i])
+            ft_trips[i] = self.py3.safe_format(result['tripTimes'][i])
 
         ft_separator = self.py3.safe_format(' / ')
 
