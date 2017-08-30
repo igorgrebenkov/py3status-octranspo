@@ -17,12 +17,12 @@ class Py3status:
     t_no_trip = '-'
     t_trip_separator = '/'
 
-    routeNo = '62' 
+    routeNo = '221' 
     stopNo = '6908'
     direction = 'east'
     low_thresh = 15
     refresh_interval = 60
-    max_time = 60
+    max_trip_time = 60
     
     def __init__(self):
         self.button = None
@@ -31,7 +31,7 @@ class Py3status:
         self.NOGPS = '-1'
         
         # Path relative to ~ for API login details (appID, apiKey)
-        #path = os.path.abspath('login')
+        # path = os.path.abspath('login')
         path = os.path.abspath('git/py3status-octranspo/login')
     
         self.login_file = open(path)
@@ -49,6 +49,7 @@ class Py3status:
                   }
         try:
             r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload)
+            # print(r.url)
             return r.json()
         except Exception as e:
             return 'CONNECTION_ERROR'
@@ -80,14 +81,19 @@ class Py3status:
         # If there are trips, we populate tripTimes and tripAges
         if trips:
             if type(trips['Trip']) is list:
-                trip_cnt = len(trips['Trip'])
-        
-                # Populate list of trip times and their adjustment ages
-                for i in range(0, trip_cnt):
-                    tripTimes[i] = trips['Trip'][i]['AdjustedScheduleTime']
+                trip_count = len(trips['Trip'])
+             
+                for i in range(0, trip_count):
+                    trip_time = trips['Trip'][i]['AdjustedScheduleTime']
+
+                    if int(trip_time) <= self.max_trip_time:
+                        tripTimes[i] = trip_time
+
                     tripAges[i] = trips['Trip'][i]['AdjustmentAge']
             else:
-                tripTimes[0] = trips['Trip']['AdjustedScheduleTime']
+                if trips['Trip']['AdjustedScheduleTime'] <= self.max_trip_time:
+                    tripTimes[0] = trips['Trip']['AdjustedScheduleTime']
+
                 tripAges[0] = trips['Trip']['AdjustmentAge']
             
         return { 'stopNo': stopNo,
@@ -116,7 +122,6 @@ class Py3status:
                     self.colors[i] = self.py3.COLOR_LOW_GPS
                 else:
                     self.colors[i] = self.py3.COLOR_GPS
-            print(trip_time + ": " + str(self.colors[i]))
 
     # Initialiazes the {route} string 
     def _initRouteString(self):
