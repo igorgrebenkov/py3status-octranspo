@@ -5,8 +5,6 @@ __author__ = "Igor Grebenkov"
 
 import json, requests, os
 
-
-
 # Module class
 class Py3status:
     format = '{route} ({trips})'
@@ -19,8 +17,8 @@ class Py3status:
     t_no_trip = '-'
     t_trip_separator = '/'
 
-    routeNo = '95' 
-    stopNo = '3000'
+    routeNo = '62' 
+    stopNo = '6908'
     direction = 'east'
     low_thresh = 15
     refresh_interval = 60
@@ -29,10 +27,11 @@ class Py3status:
     def __init__(self):
         self.button = None
         self.button_down = False
-        self.UNSCHEDULED = '-'
+        self.UNSCHEDULED = self.t_no_trip
         self.NOGPS = '-1'
         
         # Path relative to ~ for API login details (appID, apiKey)
+        #path = os.path.abspath('login')
         path = os.path.abspath('git/py3status-octranspo/login')
     
         self.login_file = open(path)
@@ -75,7 +74,7 @@ class Py3status:
             routeDir = route_direction.get('Direction')
             trips = route_direction.get('Trips') 
             
-        tripTimes = ['-'] * 3
+        tripTimes = [self.t_no_trip] * 3
         tripAges = [''] * 3
 
         # If there are trips, we populate tripTimes and tripAges
@@ -103,11 +102,9 @@ class Py3status:
     # Assign self.colors based on whether time is GPS or not and based on low_thresh
     def _assignColors(self):
         self.colors = [self.py3.COLOR_SCHED] * 3
-
-        for i in range(0, len(self.result['tripAges'])):
+        for i in range(0, len(self.result['tripTimes'])):
             trip_time = self.result['tripTimes'][i]
-
-            if trip_time == self.UNSCHEDULED:
+            if trip_time == self.t_no_trip:
                 self.colors[i] = self.py3.COLOR_SCHED
             elif self.result['tripAges'][i] == self.NOGPS:
                 if int(trip_time) <= self.low_thresh:
@@ -119,6 +116,7 @@ class Py3status:
                     self.colors[i] = self.py3.COLOR_LOW_GPS
                 else:
                     self.colors[i] = self.py3.COLOR_GPS
+            print(trip_time + ": " + str(self.colors[i]))
 
     # Initialiazes the {route} string 
     def _initRouteString(self):
@@ -178,7 +176,7 @@ class Py3status:
                          },
                          {
                            'full_text': ft_trips[2],
-                           'color': self.colors[1]
+                           'color': self.colors[2]
                          }]
 
         return self.py3.composite_create(ft_trips_dict)
