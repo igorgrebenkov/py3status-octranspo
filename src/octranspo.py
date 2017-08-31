@@ -55,8 +55,6 @@ class Py3status:
         
     # Parses relevant data from the JSON response into a dict
     def _parseJSON(self, data):
-        dirNo = 0 if self.direction == 'east' else 1
-        
         stopNo = data['GetNextTripsForStopResult']['StopNo']
         stopLabel = data['GetNextTripsForStopResult']['StopLabel']
         
@@ -64,6 +62,8 @@ class Py3status:
         
         # if 'RouteDirection' is a list, then we have to index the proper direction
         if type(route_direction) is list:
+            dirNo = 0 if self.direction == 'east' else 1
+            
             routeLabel = route_direction[dirNo].get('RouteLabel') 
             routeNo = route_direction[dirNo].get('RouteNo')
             routeDir = route_direction[dirNo].get('Direction')
@@ -122,8 +122,8 @@ class Py3status:
                 else:
                     self.colors[i] = self.py3.COLOR_GPS
 
-    # Initialiazes the {route} string 
-    def _initRouteString(self):
+    # Initialiazes the {route} composite 
+    def _initRouteComposite(self):
         # Enables button toggling
         if self.button_down:
             self.button = None
@@ -150,9 +150,12 @@ class Py3status:
                       'direction': self.result['routeDir'][0], 
                     })
 
-        return ft_route
+        return self.py3.composite_create ({
+                 'full_text': ft_route,
+                 'color': self.py3.COLOR_ROUTE
+               })
 
-    # Initializes the {trips} string
+    # Initializes the {trips} composite
     def _initTripsComposite(self):
         ft_trips = [' '] * 3
 
@@ -206,7 +209,7 @@ class Py3status:
         self._assignColors()
 
         output_composite = {
-            'route': self._initRouteString(),
+            'route': self._initRouteComposite(),
             'trips': self._initTripsComposite()
         } 
 
