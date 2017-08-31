@@ -3,6 +3,7 @@
 
 __author__ = "Igor Grebenkov"
 
+from enum import Enum
 import json, requests, os
 
 # Module class
@@ -21,7 +22,7 @@ class Py3status:
     direction = 'east'
     low_thresh = 15
     refresh_interval = 60
-    max_trip_time = 200
+    max_trip_time = 60
     max_trips = 3
 
     def __init__(self):
@@ -29,14 +30,14 @@ class Py3status:
         self.button_down = False
         self.UNSCHEDULED = '' 
         self.NOGPS = '-1'
-        
+
         # Path relative to ~ for API login details (appID, apiKey)
         path = os.path.abspath('git/py3status-octranspo/login')
     
         self.login_file = open(path)
         self.appID = self.login_file.readline().rstrip('\n')
         self.apiKey = self.login_file.readline().rstrip('\n')
-
+        
     # Fetches a JSON response from the OCTranspo API
     def _getJSON(self):
         payload = { 
