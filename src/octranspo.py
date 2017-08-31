@@ -60,14 +60,13 @@ class Py3status:
         
         route_direction = data['GetNextTripsForStopResult']['Route']['RouteDirection']
         
-        # if 'RouteDirection' is a list, then we have to index the proper direction
         if type(route_direction) is list:
-            dirNo = 0 if self.direction == 'east' else 1
+            dir_no = 0 if self.direction == 'east' else 1
             
-            routeLabel = route_direction[dirNo].get('RouteLabel') 
-            routeNo = route_direction[dirNo].get('RouteNo')
-            routeDir = route_direction[dirNo].get('Direction')
-            trips = route_direction[dirNo].get('Trips') 
+            routeLabel = route_direction[dir_no].get('RouteLabel') 
+            routeNo = route_direction[dir_no].get('RouteNo')
+            routeDir = route_direction[dir_no].get('Direction')
+            trips = route_direction[dir_no].get('Trips') 
         else:
             routeLabel = route_direction.get('RouteLabel') 
             routeNo = route_direction.get('RouteNo')
