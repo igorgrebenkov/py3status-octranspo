@@ -8,7 +8,7 @@ import json, requests, os
 
 # Module class
 class Py3status:
-    format = '{route}  {trips}'
+    format = '{route} {trips}'
     format_route = '{icon} {routeNo} {direction}'
     format_route_click = '{icon} {routeNo} {routeLabel} - {stopLabel} ({stopNo})'
     format_trip = '{trip}'
@@ -33,6 +33,7 @@ class Py3status:
 
         # Path relative to ~ for API login details (appID, apiKey)
         path = os.path.abspath('git/py3status-octranspo/login')
+        # path = os.path.abspath('login')
     
         self.login_file = open(path)
         self.appID = self.login_file.readline().rstrip('\n')
@@ -48,7 +49,8 @@ class Py3status:
                     'format': 'JSON' 
                   }
         try:
-            r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload)
+            r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop', params = payload, verify = False)
+            print(r.status_code)
             return r.json()
         except Exception as e:
             return 'CONNECTION_ERROR'
