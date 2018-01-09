@@ -44,6 +44,7 @@ class Py3status:
 
     # Fetches a JSON response from the OCTranspo API
     def _getJSON(self):
+        # https://api.octranspo1.com/v1.2/GetNextTripsForStop?appID=8856da69&apiKey=63f69bfe2ea5e6e8b12511000f01d73c&routeNo=62&stopNo=3020&format=JSON
         payload = {
                     'appID': self.appID,
                     'apiKey': self.apiKey,
@@ -51,9 +52,11 @@ class Py3status:
                     'stopNo': self.stopNo,
                     'format': 'JSON'
                   }
+        # self.py3.log(str(self.appID))
+        # self.py3.log(str(self.apiKey))
         try:
             r = requests.get('https://api.octranspo1.com/v1.2/GetNextTripsForStop',
-                             params=payload, verify=True)
+                             params=payload, verify=False)
             return r.json()
         except Exception as e:
             return 'CONNECTION_ERROR'
@@ -181,6 +184,7 @@ class Py3status:
     # Main function run by py3status
     def OCTranspo(self):
         data = self._getJSON()
+        # self.py3.log(str(data))
 
         # Display {route} in COLOR_LOW_GPS if no connection established
         if data == 'CONNECTION_ERROR':
@@ -197,6 +201,7 @@ class Py3status:
                    }
 
         self.result = self._parseJSON(data)
+        # self.py3.log(str(self.result))
 
         self._assignColors()
 
